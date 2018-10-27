@@ -1,6 +1,6 @@
 package domiu.dto;
 
-
+//
 public class Auftrag {
 
 	private String thema;

@@ -110,7 +110,7 @@
 							<sourceRoot>${basedir}/target/generated-sources/src/main/java</sourceRoot>
 							<xsdOptions>
 								<xsdOption>
-									<xsd>src/main/resources/pain.001.003.03.xsd</xsd>
+									<xsd>src/main/resources/windata.ccft.1.3.xsd</xsd>
 									<bindingFile>src/main/resources/payment.xjb</bindingFile>
 								</xsdOption>
 							</xsdOptions>

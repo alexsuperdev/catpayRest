@@ -104,7 +104,7 @@ public class FrontConnector {
         tder.setIBAN("DE62650700240021982400");
         debitTransaction.setOthrPtyDebitor(tder);
         debitTransaction.setPurpose("CopyPAste");
-        directDebitType.getTransaction().add(debitTransaction);
+        directDebitType.getTransaction().add(debitTransaction);//
         ResponseEntity<String> stringResponseEntity = konfipayService.erstelleLastschrift(directDebitType);
         System.out.println("Ende Kofipay response " + stringResponseEntity.getStatusCode());
         if (HttpStatus.CREATED.equals(stringResponseEntity.getStatusCode())) {

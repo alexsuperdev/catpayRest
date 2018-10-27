@@ -3,21 +3,29 @@ package domiu.dto;
 public class Client {
 
     public String getName() {
-        return name;
+        return Name;
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.Name = name;
     }
 
     public String getVersion() {
-        return version;
+        return Version;
     }
 
     public void setVersion(String version) {
-        this.version = version;
+        this.Version = version;
     }
 
-    private String name;
-    private String version;
+    private String Name;
+    private String Version;
+
+    @Override
+    public String toString() {
+        return "Client{" +
+                "Name='" + Name + '\'' +
+                ", Version='" + Version + '\'' +
+                '}';
+    }
 }

@@ -18,6 +18,11 @@ import domiu.dto.Antrag;
 import domiu.dto.Nutzer;
 import domiu.dto.Status;
 import domiu.dto.Zahlung;
+import domiu.dto.Auftrag;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 @Controller
 public class FrontConnector {

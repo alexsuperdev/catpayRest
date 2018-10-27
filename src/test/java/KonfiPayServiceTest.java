@@ -12,7 +12,7 @@ public class KonfiPayServiceTest {
     private KonfipayService konfipayService;
 
     @Test
-    public void d(){
+    public void testZahlung(){
         CustomerCreditTransferInitiationV03 customerCreditTransferInitiationV03 = new CustomerCreditTransferInitiationV03();
         konfipayService.erstelleLastschrift(customerCreditTransferInitiationV03);
     }

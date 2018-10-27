@@ -2,6 +2,8 @@ package domiu.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.sql.Date;
+
 public class Antrag {
 
 	@JsonProperty
@@ -14,6 +16,11 @@ public class Antrag {
 	private Double betrag;
 	@JsonProperty
 	private String person;
+	@JsonProperty
+	private Integer anzahlbezverfuegbar ;
+	@JsonProperty
+	private Date letztezahlung;
+
 	@JsonProperty
 	private String auftragnehmer;
 

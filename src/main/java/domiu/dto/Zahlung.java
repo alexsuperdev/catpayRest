@@ -3,7 +3,7 @@ package domiu.dto;
 public class Zahlung {
 
 	private String tokenName;
-	private String auftragId;
+	private Antrag auftrag;
 	private String rfidId;
 
 	public String getTokenName() {
@@ -14,12 +14,12 @@ public class Zahlung {
 		this.tokenName = tokenName;
 	}
 
-	public String getAuftragId() {
-		return auftragId;
+	public Antrag getAuftrag() {
+		return auftrag;
 	}
 
-	public void setAuftragId(String auftragId) {
-		this.auftragId = auftragId;
+	public void setAuftrag(Antrag auftrag) {
+		this.auftrag = auftrag;
 	}
 
 	public String getRfid() {

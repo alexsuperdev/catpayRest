@@ -14,7 +14,7 @@ public class Zahlung {
 		this.tokenName = tokenName;
 	}
 
-	public Antrag getAuftrag() {
+	public Antrag getAntrag() {
 		return auftrag;
 	}
 

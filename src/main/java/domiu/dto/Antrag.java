@@ -24,6 +24,16 @@ public class Antrag {
 	@JsonProperty
 	private String auftragnehmer;
 
+	public Integer getAuftragid() {
+		return auftragid;
+	}
+
+	public void setAuftragid(Integer auftragid) {
+		this.auftragid = auftragid;
+	}
+
+	private Integer auftragid;
+
 	public Antrag() {
 		
 	}
@@ -40,13 +50,15 @@ public class Antrag {
 
 	}
 
-	public Antrag(String an_auftragid, String an_auftraggeber_id, String an_auftragnehmer_id, String an_thema,
-			String an_beschreibung, Double an_lohn, Integer an_anzahlbez, String an_anzahlbezverfuegbar,
-			String an_letztezahlung) {
+	public Antrag(Integer auftragid, String an_auftraggeber_id, String an_auftragnehmer_id, String an_thema,
+				  String an_beschreibung, Double an_lohn, Integer an_anzahlbez, Integer an_anzahlbezverfuegbar,
+				  String an_letztezahlung) {
 		// TODO Auto-generated constructor stub
+		this.auftragid = auftragid;
 		this.thema = an_thema;
 		this.beschreibung = an_beschreibung;
 		this.wiederholung = an_anzahlbez;
+		this.anzahlbezverfuegbar = an_anzahlbezverfuegbar;
 		this.betrag = an_lohn;
 		this.person = an_auftraggeber_id;
 		this.auftragnehmer = an_auftragnehmer_id;

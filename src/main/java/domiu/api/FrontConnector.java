@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import de.catpay.domiu.konfipay.dto.*;
 import domiu.dto.Antrag;
 import domiu.dto.Nutzer;
-import domiu.dto.Zahlung;
 import domiu.service.KonfipayService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -38,10 +37,10 @@ public class FrontConnector {
 
             jdbcTemplate.update(
                     "insert into antrag " + "(" + "an_auftraggeber_id, " + "an_auftragnehmer_id, " + "an_thema, "
-                            + "an_beschreibung, " + "an_lohn, " + "an_anzahlbez, " + "an_anzahlbezverfuegbar ) "
+                            + "an_beschreibung, " + "an_lohn,  an_anzahlbez, an_anzahlbezverfuegbar ) "
                             + "VALUES (?,?,?,?,?,?,?) ",
                     antrag.getPerson(), antrag.getAuftragnehmer(), antrag.getThema(), antrag.getBeschreibung(),
-                    antrag.getBetrag(), antrag.getWiederholung(), antrag.getWiederholung());
+                    antrag.getBetrag(), 0, antrag.getWiederholung());
         } catch (Exception e) {
             return ResponseEntity.status(500).body(e.getMessage());
         }
@@ -53,49 +52,66 @@ public class FrontConnector {
     public ResponseEntity<List<Antrag>> getAuftraege(@RequestParam String userId) {
         List<Antrag> auftraege =
 
-                jdbcTemplate.query("select * from antrag",
-                        (rs, rowNum) -> new Antrag(rs.getString("an_auftragid"), rs.getString("an_auftraggeber_id"),
+                jdbcTemplate.query("select * from antrag where an_auftragnehmer_id = ? and an_anzahlbez < an_anzahlbezverfuegbar ",
+                        (rs, rowNum) -> new Antrag(rs.getInt("an_auftragid"), rs.getString("an_auftraggeber_id"),
                                 rs.getString("an_auftragnehmer_id"), rs.getString("an_thema"),
                                 rs.getString("an_beschreibung"), rs.getDouble("an_lohn"), rs.getInt("an_anzahlbez"),
-                                rs.getString("an_anzahlbezverfuegbar"), rs.getString("an_letztezahlung")))
+                                rs.getInt("an_anzahlbezverfuegbar"), rs.getString("an_letztezahlung")), userId)
                         .stream().collect(Collectors.toList());
-        // .forEach(x -> System.out.println(x.toString()));
         return ResponseEntity.ok(auftraege);
     }
+//
+//    @GetMapping(value = "v1/api/getAuftraegeFuerAuftraggeber")
+//    public ResponseEntity<List<Antrag>> getAuftraegeFuerAuftraggeber(@RequestParam String auftraggeberId) {
+//        List<Antrag> auftraege =
+//
+//                jdbcTemplate.query("select * from antrag where an_auftraggeber_id  = ?",
+//                        (rs, rowNum) -> new Antrag(rs.getString("an_auftragid"), rs.getString("an_auftraggeber_id"),
+//                                rs.getString("an_auftragnehmer_id"), rs.getString("an_thema"),
+//                                rs.getString("an_beschreibung"), rs.getDouble("an_lohn"), rs.getInt("an_anzahlbez"),
+//                                rs.getString("an_anzahlbezverfuegbar"), rs.getString("an_letztezahlung")),auftraggeberId)
+//                        .stream().collect(Collectors.toList());
+//        return ResponseEntity.ok(auftraege);
+//    }
 
-    @PostMapping(value = "v1/api/createZahlung")
-    public ResponseEntity<String> createZahlung(@RequestBody Zahlung zahlung) throws JsonProcessingException {
+    @GetMapping(value = "v1/api/createZahlung")
+    public ResponseEntity<String> createZahlung(@RequestParam Integer auftragid) throws JsonProcessingException {
+
 
         DirectDebitType directDebitType = new DirectDebitType();
         InitPtyCreditorType creditor = new InitPtyCreditorType();
-        if (zahlung.getAuftrag() != null){
-            creditor.setName(zahlung.getAuftrag().getPerson());
-        }
-        else{
-            creditor.setName("Blubb");
+//        if (zahlung.getAntrag() != null) {
+//            creditor.setName(zahlung.getAntrag().getPerson());
+//        } else {
+        creditor.setName("Blubb");
+//        }
+
+        Integer anzahlbez = jdbcTemplate.queryForObject("select an_anzahlbez  from antrag where an_auftragid = ? ", Integer.class, auftragid);
+        Integer anzahlbezverfuegbar = jdbcTemplate.queryForObject("select an_anzahlbezverfuegbar from antrag where an_auftragid = ? ", Integer.class, auftragid);
+        Double betrag = jdbcTemplate.queryForObject("select an_lohn  from antrag where an_auftragid = ? ", Double.class, auftragid);
+        if (anzahlbezverfuegbar <= anzahlbez) {
+            return ResponseEntity.badRequest().body("Betrüger entdeckt");
         }
         creditor.setIBAN("DE62650700240021982400");
-        creditor.setCreditorId(zahlung.getAuftrag().getPerson());
+        creditor.setCreditorId("Maffay");
         directDebitType.setInitPtyCreditor(creditor);
 
         DirectDebitTransaction debitTransaction = new DirectDebitTransaction();
         AmountAndCurrencyType amountAndCurrencyType = new AmountAndCurrencyType();
-        amountAndCurrencyType.setValue(BigDecimal.valueOf(zahlung.getAuftrag().getBetrag()));
+        amountAndCurrencyType.setValue(BigDecimal.valueOf(betrag));
         debitTransaction.setAmount(amountAndCurrencyType);
         OthrPtyDebitorType tder = new OthrPtyDebitorType();
         tder.setIBAN("DE62650700240021982400");
         debitTransaction.setOthrPtyDebitor(tder);
-        debitTransaction.setPurpose(zahlung.getAuftrag().getThema());
+        debitTransaction.setPurpose("CopyPAste");
         directDebitType.getTransaction().add(debitTransaction);
         ResponseEntity<String> stringResponseEntity = konfipayService.erstelleLastschrift(directDebitType);
-        if (HttpStatus.OK.equals(stringResponseEntity.getStatusCode())){
-
+        System.out.println("Ende Kofipay response " + stringResponseEntity.getStatusCode());
+        if (HttpStatus.CREATED.equals(stringResponseEntity.getStatusCode())) {
+            System.out.println("Testst");
             try {
-
-                jdbcTemplate.update(
-                        "update antrag set an_anzahlbezverfuegbar  "
-                                + "where  an_auftragid = ? ",
-                        1);
+                jdbcTemplate.update("update antrag set an_anzahlbez = ?  where an_auftragid = ? ", anzahlbez + 1, auftragid);
+                System.out.println(jdbcTemplate.toString());
             } catch (Exception e) {
                 return ResponseEntity.status(500).body(e.getMessage());
             }

@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!-- edited with XMLSpy v2018 (x64) (http://www.altova.com) by Michael Rudhart (windata GmbH & Co.KG) -->
+<xs:schema xmlns="urn:windata:xsd:fsln:sdxi:sepa:de:ccft.1.3" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="urn:windata:xsd:fsln:sdxi:sepa:de:ccft.1.3" elementFormDefault="qualified">
+	<!--windata consecutive customer based financial transactions (ccft) format specification ("Groombridge")-->
+	<!--General information-->
+	<xs:annotation>
+		<xs:appinfo>fsln</xs:appinfo>
+		<xs:documentation>financial solutions (fsln)</xs:documentation>
+	</xs:annotation>
+	<xs:annotation>
+		<xs:appinfo>sdxi</xs:appinfo>
+		<xs:documentation>structured data exchange interface (sdxi)</xs:documentation>
+	</xs:annotation>
+	<xs:annotation>
+		<xs:appinfo>sepa</xs:appinfo>
+		<xs:documentation>Single Euro Payments Area (SEPA)</xs:documentation>
+	</xs:annotation>
+	<xs:annotation>
+		<xs:appinfo>cctf</xs:appinfo>
+		<xs:documentation>consecutive customer based financial transactions (ccft)</xs:documentation>
+	</xs:annotation>
+	<xs:annotation>
+		<xs:appinfo>Documentation</xs:appinfo>
+		<xs:documentation>
+			Documentation
+			<xs:documentation>
+				This file defines a local schema for importing and exporting customer based SEPA transactions. Each node in a derived document may contain either a Credit Transfer Initiation or a Direct Debit Initiation.
+				The logical structure of each node represents a one-to-one relationship, whereas the initiating party settles a payment with another party.
+				Additional mandatory data for Direct Debit Initiations is reflected in the relevant node type, which contains surplus fields for storing mandate data, as well as information about the Direct Debit Initiation itself.
+			</xs:documentation>
+		</xs:documentation>
+	</xs:annotation>
+	<xs:annotation>
+		<xs:documentation>
+			Release history
+			<xs:appinfo>1.0</xs:appinfo>
+			<xs:documentation>
+				Version 1.0
+				<xs:documentation>
+					Initial Release
+				</xs:documentation>
+			</xs:documentation>
+			<xs:appinfo>1.1</xs:appinfo>
+			<xs:documentation>
+				Version 1.1
+				<xs:documentation>
+					The types used in this schema conform to v2.7 of the DFÜ agreement (German Credit Institute). However, a restraint has been placed on the character set, which gurantees backward compatibility.
+					Additionaly, IBAN-Only transactions are currently not supported. A future revision of the scheme may omit these limits.
+				</xs:documentation>
+			</xs:documentation>
+			<xs:appinfo>1.2</xs:appinfo>
+			<xs:documentation>
+				Version 1.2
+				<xs:documentation>
+					Internal release
+				</xs:documentation>
+			</xs:documentation>
+			<xs:appinfo>1.3</xs:appinfo>
+			<xs:documentation>
+				Version 1.3
+				<xs:documentation>
+					Removed Master Initiating Party. Changed field names. Adjusted format to SEPA v3.0. IBAN-Only transactions are now enforced. Moved parties to transaction. Added support for multiple transactions.
+				</xs:documentation>
+			</xs:documentation>
+		</xs:documentation>
+	</xs:annotation>
+	<xs:annotation>
+		<xs:appinfo>Copyright (c) windata GmbH &amp; Co.KG. All rights resvered.</xs:appinfo>
+		<xs:documentation>Copyright (c) windata GmbH &amp; Co.KG. All rights resvered.</xs:documentation>
+	</xs:annotation>
+	<!--Simple types-->
+	<!--Party based types-->
+	<xs:simpleType name="NameType">
+		<xs:annotation>
+			<xs:documentation>Name of a party (type)</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:pattern value="([A-Za-z0-9]|[\+|\?|/|\-|:|\(|\)|\.|,|'| ]){1,70}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="IBANType">
+		<xs:annotation>
+			<xs:documentation>IBAN (type)</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:pattern value="[A-Z]{2,2}[0-9]{2,2}[a-zA-Z0-9]{1,30}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="CreditorIdType">
+		<xs:annotation>
+			<xs:documentation>Id of the creditor (type). Used only in conjunction with a Direct Debit Initiation.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:pattern value="[a-zA-Z]{2,2}[0-9]{2,2}([A-Za-z0-9]|[\+|\?|/|\-|:|\(|\)|\.|,|']){3,3}([A-Za-z0-9]|[\+|\?|/|\-|:|\(|\)|\.|,|']){1,28}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!--Transaction based types-->
+	<xs:simpleType name="CurrencyCodeType">
+		<xs:annotation>
+			<xs:documentation>Currency (type)</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="EUR"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="AmountType">
+		<xs:annotation>
+			<xs:documentation>Amount (type)</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:decimal">
+			<xs:minInclusive value="0.01"/>
+			<xs:maxInclusive value="500099.99"/>
+			<xs:fractionDigits value="2"/>
+			<xs:totalDigits value="11"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="AmountAndCurrencyType">
+		<xs:annotation>
+			<xs:documentation>Amount and currency (type)</xs:documentation>
+		</xs:annotation>
+		<xs:simpleContent>
+			<xs:extension base="AmountType">
+				<xs:attribute name="Ccy" type="CurrencyCodeType" use="required"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="PurposeType">
+		<xs:annotation>
+			<xs:documentation>Purpose (type)</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:pattern value="([A-Za-z0-9]|[\+|\?|/|\-|:|\(|\)|\.|,|'| ]){1,140}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!--Note: shared solitary type-->
+	<xs:simpleType name="ISODateType">
+		<xs:annotation>
+			<xs:documentation>Date (type)</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:date"/>
+	</xs:simpleType>
+	<!--Note: this type is capable of being declared as a shared solitary type-->
+	<xs:simpleType name="ReferenceIdentificationType">
+		<xs:annotation>
+			<xs:documentation>Reference of a payment (type)</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:pattern value="([A-Za-z0-9]|[\+|\?|/|\-|:|\(|\)|\.|,|'| ]){1,35}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!--Direct Debit based types-->
+	<xs:simpleType name="LocalInstrumentCodeType">
+		<xs:annotation>
+			<xs:documentation>Local instrument of the Direct Debit Initiation (type). Used only in conjunction with a Direct Debit initiation.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="CORE">
+				<xs:annotation>
+					<xs:documentation>CORE</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="B2B">
+				<xs:annotation>
+					<xs:documentation>B2B (Business-To-Business)</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="MandateIdType">
+		<xs:annotation>
+			<xs:documentation>Mandate Id (type). Used only in conjunction with a Direct Debit Initiation.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:pattern value="([A-Za-z0-9]|[\+|\?|/|\-|:|\(|\)|\.|,|']){1,35}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="SequenceCodeType">
+		<xs:annotation>
+			<xs:documentation>Sequence of the mandate linked to a Direct Debit Initiation (type). Used only in conjunction with a Direct Debit Initiation.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="OOFF">
+				<xs:annotation>
+					<xs:documentation>One-Off</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="RCUR">
+				<xs:annotation>
+					<xs:documentation>Recurring</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="FNAL">
+				<xs:annotation>
+					<xs:documentation>Final</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+	<!--Complex types-->
+	<!--Party based types-->
+	<xs:complexType name="PartyType">
+		<xs:annotation>
+			<xs:documentation>Party (type)</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Name" type="NameType"/>
+			<xs:element name="IBAN" type="IBANType"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="InitPartyType">
+		<xs:annotation>
+			<xs:documentation>Initiating party (type)</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="PartyType">
+				<xs:sequence>
+					<xs:element name="Id" type="ReferenceIdentificationType">
+						<xs:annotation>
+							<xs:documentation>Identification of the initiating party</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="InitPtyCreditorType">
+		<xs:annotation>
+			<xs:documentation>Initiating Direct Debit party (creditor) (type)</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="InitPartyType">
+				<xs:sequence>
+					<xs:element name="CreditorId" type="CreditorIdType">
+						<xs:annotation>
+							<xs:documentation>Identification of the initiating party for Direct Debit Initiations</xs:documentation>
+						</xs:annotation>
+					</xs:element>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="OthrPtyDebitorType">
+		<xs:annotation>
+			<xs:documentation>Other Direct Debit party (debitor) (type)</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="PartyType">
+				<xs:sequence>
+					<xs:element name="MandateData" type="MandateDataType"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<!--Direct Debit based types-->
+	<xs:complexType name="MandateDataType">
+		<xs:annotation>
+			<xs:documentation>Mandate related data for Direct Debit transactions (type)</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="MandateId" type="MandateIdType"/>
+			<xs:element name="MandateDate" type="ISODateType"/>
+			<xs:element name="Sequence" type="SequenceCodeType"/>
+		</xs:sequence>
+	</xs:complexType>
+	<!--Transaction based types-->
+	<xs:complexType name="CoreTransactionType" abstract="true">
+		<xs:annotation>
+			<xs:documentation>
+			Abstract Transaction (type). This type cannot be instantiated.
+			WARNING: The "EndToEndId" field identifies the transaction. For auditing purposes, it is imperative that each transaction receives a unique Identifer.
+			Failure to adhere to this recommendation will cause loss of trace capabilities in subsequent payment information documents.
+			The implementor of this schema is responsible for defining a reliable mechanism, which gurantees unique Ids for each document over the lifetime of the system implementation.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Amount" type="AmountAndCurrencyType"/>
+			<xs:element name="Purpose" type="PurposeType"/>
+			<xs:element name="ExecutionDate" type="ISODateType"/>
+			<xs:element name="EndToEndId" type="ReferenceIdentificationType"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="CreditTransferTransaction">
+		<xs:annotation>
+			<xs:documentation>Credit Transfer Transaction (type)</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="CoreTransactionType">
+				<xs:sequence>
+					<xs:element name="OthrPtyCreditor" type="PartyType"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="DirectDebitTransaction">
+		<xs:annotation>
+			<xs:documentation>Direct Debit Transaction (type)</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="CoreTransactionType">
+				<xs:sequence>
+					<xs:element name="OthrPtyDebitor" type="OthrPtyDebitorType"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<!--Initiation types-->
+	<xs:complexType name="CoreInitiationType" abstract="true">
+		<xs:annotation>
+			<xs:documentation>Abstract Customer Initiation (type). This type cannot be instantiated.</xs:documentation>
+		</xs:annotation>
+	</xs:complexType>
+	<xs:complexType name="CreditTransferType">
+		<xs:annotation>
+			<xs:documentation>Credit Transfer Initiation (type)</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="CoreInitiationType">
+				<xs:sequence>
+					<xs:element name="InitPtyDebitor" type="InitPartyType"/>
+					<xs:element name="Transaction" type="CreditTransferTransaction" maxOccurs="5000"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="DirectDebitType">
+		<xs:annotation>
+			<xs:documentation>Direct Debit Initiation (type)</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="CoreInitiationType">
+				<xs:sequence>
+					<xs:element name="LocalInstrument" type="LocalInstrumentCodeType"/>
+					<xs:element name="InitPtyCreditor" type="InitPtyCreditorType"/>
+					<xs:element name="Transaction" type="DirectDebitTransaction" maxOccurs="5000"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<!--Document-->
+	<xs:element name="Document">
+		<xs:annotation>
+			<xs:documentation>The one and only document</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:choice minOccurs="1" maxOccurs="5000">
+				<xs:element name="CreditTransfer" type="CreditTransferType"/>
+				<xs:element name="DirectDebit" type="DirectDebitType"/>
+			</xs:choice>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

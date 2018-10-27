@@ -2,7 +2,7 @@ package domiu.dto;
 
 public class  PaymentTemplate {
 
-    public static String TEMPLATE ="<DirectDebit>\n" +
+    public static String TEMPLATE ="<Document  xmlns=\"urn:windata:xsd:fsln:sdxi:sepa:de:ccft.1.3\"> <DirectDebit>\n" +
             "\t\t<LocalInstrument>CORE</LocalInstrument>\n" +
             "\t\t<InitPtyCreditor>\n" +
             "\t\t\t<Name>##Name##</Name>\n" +
@@ -25,5 +25,5 @@ public class  PaymentTemplate {
             "\t\t\t\t</MandateData>\n" +
             "\t\t\t</OthrPtyDebitor>\n" +
             "\t\t</Transaction>\n" +
-            "\t</DirectDebit>";
+            "\t</DirectDebit></Document>";
 }

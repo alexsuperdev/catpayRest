@@ -16,6 +16,11 @@ public class Antrag {
 	private Double betrag;
 	@JsonProperty
 	private String person;
+
+	public Integer getAnzahlbezverfuegbar() {
+		return anzahlbezverfuegbar;
+	}
+
 	@JsonProperty
 	private Integer anzahlbezverfuegbar ;
 	@JsonProperty

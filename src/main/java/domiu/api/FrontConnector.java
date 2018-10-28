@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -86,10 +87,21 @@ public class FrontConnector {
 //        }
 
         creditor.setName("LIDIA");
-        Integer anzahlbez = jdbcTemplate.queryForObject("select an_anzahlbez  from antrag where an_auftragid = ? ", Integer.class, auftragid);
-        Integer anzahlbezverfuegbar = jdbcTemplate.queryForObject("select an_anzahlbezverfuegbar from antrag where an_auftragid = ? ", Integer.class, auftragid);
-        Double betrag = jdbcTemplate.queryForObject("select an_lohn  from antrag where an_auftragid = ? ", Double.class, auftragid);
-        if (anzahlbezverfuegbar <= anzahlbez) {
+
+        List<Antrag> collect = jdbcTemplate.query("select * from antrag where an_auftragid = ? and an_anzahlbez < an_anzahlbezverfuegbar ",
+                (rs, rowNum) -> new Antrag(rs.getInt("an_auftragid"), rs.getString("an_auftraggeber_id"),
+                        rs.getString("an_auftragnehmer_id"), rs.getString("an_thema"),
+                        rs.getString("an_beschreibung"), rs.getDouble("an_lohn"), rs.getInt("an_anzahlbez"),
+                        rs.getInt("an_anzahlbezverfuegbar"), rs.getString("an_letztezahlung")), auftragid)
+                .stream().collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(collect)){
+            return ResponseEntity.badRequest().body("Keine Zahlung dafür");
+        }
+        System.out.println("antrag " + collect.get(0).toString());
+//        Integer anzahlbez = jdbcTemplate.queryForObject("select an_anzahlbez  from antrag where an_auftragid = ? ", Integer.class, auftragid);
+//        Integer anzahlbezverfuegbar = jdbcTemplate.queryForObject("select an_anzahlbezverfuegbar from antrag where an_auftragid = ? ", Integer.class, auftragid);
+//        Double betrag = jdbcTemplate.queryForObject("select an_lohn  from antrag where an_auftragid = ? ", Double.class, auftragid);
+        if (collect.get(0).getAnzahlbezverfuegbar() <= collect.get(0).getWiederholung()) {
             return ResponseEntity.badRequest().body("Betrüger entdeckt");
         }
         creditor.setIBAN("DE36733900000000121738");
@@ -97,7 +109,7 @@ public class FrontConnector {
 
         DirectDebitTransaction debitTransaction = new DirectDebitTransaction();
         AmountAndCurrencyType amountAndCurrencyType = new AmountAndCurrencyType();
-        amountAndCurrencyType.setValue(BigDecimal.valueOf(betrag));
+        amountAndCurrencyType.setValue(BigDecimal.valueOf(collect.get(0).getBetrag()));
         debitTransaction.setAmount(amountAndCurrencyType);
         OthrPtyDebitorType tder = new OthrPtyDebitorType();
         tder.setIBAN("DE62650700240021982400");
@@ -110,8 +122,7 @@ public class FrontConnector {
         if (HttpStatus.CREATED.equals(stringResponseEntity.getStatusCode())) {
             System.out.println("Testst");
             try {
-                jdbcTemplate.update("update antrag set an_anzahlbez = ?  where an_auftragid = ? ", anzahlbez + 1, auftragid);
-                System.out.println(jdbcTemplate.toString());
+                jdbcTemplate.update("update antrag set an_anzahlbez = ?  where an_auftragid = ? ", collect.get(0).getWiederholung() + 1, auftragid);
             } catch (Exception e) {
                 return ResponseEntity.status(500).body(e.getMessage());
             }

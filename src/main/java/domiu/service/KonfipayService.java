@@ -7,10 +7,7 @@ import domiu.RequestResponseLoggingInterceptor;
 import domiu.dto.Credentials;
 import domiu.dto.PaymentTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
@@ -24,6 +21,8 @@ import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class KonfipayService {
@@ -33,6 +32,8 @@ public class KonfipayService {
     private String paymentSuffix = "api/v2.6/Payment/simple";
 
     private String loginTokenSuffix = "api/Login/Token";
+
+    private String kontoUebersicht = "/api/v2.6/Payment/Status?Start={start}&End={end}";
 
     private String uuid = "e70a447575084600b0c72112c58319c0";
 
@@ -47,7 +48,7 @@ public class KonfipayService {
     @PostConstruct
     public void init() {
         restTemplate = new RestTemplate();
-        restTemplate.setInterceptors( Collections.singletonList(new RequestResponseLoggingInterceptor()) );
+        restTemplate.setInterceptors(Collections.singletonList(new RequestResponseLoggingInterceptor()));
         restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
         restTemplate.getMessageConverters().add(new MappingJackson2XmlHttpMessageConverter());
         restTemplate.getMessageConverters().add(new Jaxb2RootElementHttpMessageConverter());
@@ -57,55 +58,39 @@ public class KonfipayService {
         objectMapper = new ObjectMapper();
     }
 
-    public String getLoginToken() throws IOException {
-
-        Credentials credentials = new Credentials();
-        credentials.setUUID(uuid);
-        credentials.setUsername("moneisz@gnubis.de");
-        credentials.setPassword("5671f7ca5671f7ca");
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setAcceptCharset(Collections.singletonList(Charset.forName("UTF-8")));
-        String data = "{\"UUID\":\"e70a447575084600b0c72112c58319c0\", \"Username\":\"moneisz@gnubis.de\"" +
-                ", \"Password\":\"5671f7ca5671f7ca\"}";
-        HttpEntity<String> entity = new HttpEntity<>(data, headers);
-        ResponseEntity<byte[]> stringResponseEntity = restTemplate.postForEntity(endpointBasePath + loginTokenSuffix, entity, byte[].class);
-        String s = new String(stringResponseEntity.getBody(), "UTF-8").replaceAll("\\s+", "").replaceAll(" ", "");
-        ResponseEntity<String> stringResponseEntity2 = restTemplate.postForEntity(endpointBasePath + loginTokenSuffix, entity,String.class);
-        String d = s.replaceAll("\"\"","");
-        int i = s.indexOf("a c c e s s _ t o k e n")+1;
-        int i34 = s.indexOf("token")+1;
-        int i2 = s.indexOf("t o")+1;
-        int i223 = s.indexOf("\\s")+1;
-        System.out.println(i);
-        System.out.println(i2);
-        String replace = StringUtils.replace(d, " ", "");
-//        LoginToken loginToken = objectMapper.readValue(s, LoginToken.class);
-        String substring = s.substring(s.charAt(i), s.charAt(i2));
-        return s;
-    }
-
     public ResponseEntity<String> erstelleLastschrift(DirectDebitType directDebitType) throws JsonProcessingException {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_XML);
         String a = PaymentTemplate.TEMPLATE;
         String requestString = a.replaceAll("##Name##", directDebitType.getInitPtyCreditor().getName());
         requestString = requestString.replaceAll("##DEBITOR##", directDebitType.getTransaction().get(0).getOthrPtyDebitor().getName());
-        requestString = requestString.replace("##IBANABSENDER##",directDebitType.getInitPtyCreditor().getIBAN());
-        requestString = requestString.replace("##IBANENPOFAENGER##",directDebitType.getTransaction().get(0).getOthrPtyDebitor().getIBAN());
-        requestString = requestString.replace("##Amount##",directDebitType.getTransaction().get(0).getAmount().getValue().toString());
-        requestString = requestString.replace("##Verwendungszweck##",directDebitType.getTransaction().get(0).getPurpose());
-        headers.set("Authorization", "Bearer "+loginTokenService.getLoginToken());
-        HttpEntity<String> entityReq = new HttpEntity<>(requestString,headers);
-        System.out.println("Entity "+requestString);
+        requestString = requestString.replace("##IBANABSENDER##", directDebitType.getInitPtyCreditor().getIBAN());
+        requestString = requestString.replace("##IBANENPOFAENGER##", directDebitType.getTransaction().get(0).getOthrPtyDebitor().getIBAN());
+        requestString = requestString.replace("##Amount##", directDebitType.getTransaction().get(0).getAmount().getValue().toString());
+        requestString = requestString.replace("##Verwendungszweck##", directDebitType.getTransaction().get(0).getPurpose());
+        headers.set("Authorization", "Bearer " + loginTokenService.getLoginToken());
+        HttpEntity<String> entityReq = new HttpEntity<>(requestString, headers);
+        System.out.println("Entity " + requestString);
         ResponseEntity<String> response = null;
-        try{
-            response = restTemplate.postForEntity(endpointBasePath+paymentSuffix, entityReq, String.class);
-        }
-        catch (HttpClientErrorException e){
+        try {
+            response = restTemplate.postForEntity(endpointBasePath + paymentSuffix, entityReq, String.class);
+        } catch (HttpClientErrorException e) {
 
-            System.out.println("body  "+new String(e.getResponseBodyAsByteArray(), Charset.forName("UTF-8")));
+            System.out.println("body  " + new String(e.getResponseBodyAsByteArray(), Charset.forName("UTF-8")));
         }
         return response;
+
+    }
+
+    public void createUebersicht() {
+        Map<String, Object> params = new HashMap<>();
+        params.put("start", "26.10.2018");
+        params.put("end", "28.10.2018");
+//        params.put("iban", "DE62650700240021982400");
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + loginTokenService.getLoginToken());
+        HttpEntity<String> entityReq = new HttpEntity<>(headers);
+        ResponseEntity<String> forObject = restTemplate.exchange(endpointBasePath + kontoUebersicht, HttpMethod.GET, entityReq, String.class, params);
+        System.out.println("body  " + forObject);
     }
 }

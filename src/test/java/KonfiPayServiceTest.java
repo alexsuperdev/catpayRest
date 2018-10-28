@@ -46,4 +46,9 @@ public class KonfiPayServiceTest {
     }
 
 
+    @Test
+    public void createUebersichtTest(){
+        konfipayService.createUebersicht();
+    }
+
 }

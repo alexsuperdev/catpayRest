@@ -83,17 +83,16 @@ public class FrontConnector {
 //        if (zahlung.getAntrag() != null) {
 //            creditor.setName(zahlung.getAntrag().getPerson());
 //        } else {
-        creditor.setName("Blubb");
 //        }
 
+        creditor.setName("LIDIA");
         Integer anzahlbez = jdbcTemplate.queryForObject("select an_anzahlbez  from antrag where an_auftragid = ? ", Integer.class, auftragid);
         Integer anzahlbezverfuegbar = jdbcTemplate.queryForObject("select an_anzahlbezverfuegbar from antrag where an_auftragid = ? ", Integer.class, auftragid);
         Double betrag = jdbcTemplate.queryForObject("select an_lohn  from antrag where an_auftragid = ? ", Double.class, auftragid);
         if (anzahlbezverfuegbar <= anzahlbez) {
             return ResponseEntity.badRequest().body("Betrüger entdeckt");
         }
-        creditor.setIBAN("DE62650700240021982400");
-        creditor.setCreditorId("Maffay");
+        creditor.setIBAN("DE36733900000000121738");
         directDebitType.setInitPtyCreditor(creditor);
 
         DirectDebitTransaction debitTransaction = new DirectDebitTransaction();
@@ -102,6 +101,7 @@ public class FrontConnector {
         debitTransaction.setAmount(amountAndCurrencyType);
         OthrPtyDebitorType tder = new OthrPtyDebitorType();
         tder.setIBAN("DE62650700240021982400");
+        tder.setName("PETER");
         debitTransaction.setOthrPtyDebitor(tder);
         debitTransaction.setPurpose("CopyPAste");
         directDebitType.getTransaction().add(debitTransaction);//

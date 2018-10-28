@@ -16,7 +16,7 @@ public class  PaymentTemplate {
             "\t\t\t<ExecutionDate>2018-10-10</ExecutionDate>\n" +
             "\t\t\t<EndToEndId>Bob EndToEndId 1</EndToEndId>\n" +
             "\t\t\t<OthrPtyDebitor>\n" +
-            "\t\t\t\t<Name>Alice</Name>\n" +
+            "\t\t\t\t<Name>##DEBITOR##</Name>\n" +
             "\t\t\t\t<IBAN>##IBANENPOFAENGER##</IBAN>\n" +
             "\t\t\t\t<MandateData>\n" +
             "\t\t\t\t\t<MandateId>MNDID123456</MandateId>\n" +

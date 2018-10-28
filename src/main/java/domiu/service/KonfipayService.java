@@ -89,7 +89,8 @@ public class KonfipayService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_XML);
         String a = PaymentTemplate.TEMPLATE;
-        String requestString = a.replaceAll("##Name##", "Test");
+        String requestString = a.replaceAll("##Name##", directDebitType.getInitPtyCreditor().getName());
+        requestString = requestString.replaceAll("##DEBITOR##", directDebitType.getTransaction().get(0).getOthrPtyDebitor().getName());
         requestString = requestString.replace("##IBANABSENDER##",directDebitType.getInitPtyCreditor().getIBAN());
         requestString = requestString.replace("##IBANENPOFAENGER##",directDebitType.getTransaction().get(0).getOthrPtyDebitor().getIBAN());
         requestString = requestString.replace("##Amount##",directDebitType.getTransaction().get(0).getAmount().getValue().toString());
